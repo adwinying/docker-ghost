@@ -1,10 +1,42 @@
 version: '2'
 
 services:
-  web:
+  ghost:
     image: ghost:1.21
     restart: always
-    ports:
-      - 3001:2368
+    expose:
+      - '2368'
     volumes:
       - ./content:/var/lib/ghost/content
+    environment:
+      - url=https://blog.example.com
+      - VIRTUAL_HOST=blog.example.com
+      - LETSENCRYPT_HOST=blog.example.com
+      - LETSENCRYPT_EMAIL=admin@example.com
+    depends_on:
+      - nginx_proxy
+
+  # Reverse Proxy container
+  nginx_proxy:
+    image: jwilder/nginx-proxy:latest
+    ports:
+      - 80:80
+      - 443:443
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./ssl_certs:/etc/nginx/certs:ro
+      - /etc/nginx/vhost.d
+      - /usr/share/nginx/html
+
+  # Let's Encrypt SSL Cert Manager container
+  ssl_manager:
+    image: jrcs/letsencrypt-nginx-proxy-companion:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./ssl_certs/:/etc/nginx/certs:rw
+    volumes_from:
+      - nginx_proxy
+    depends_on:
+      - nginx_proxy
