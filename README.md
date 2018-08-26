@@ -19,10 +19,24 @@ $ cd docker-ghost
 $ cp /path/to/content/folder ./
 ```
 
-3. Set up the docker image
+3. Configure your ghost install. Under `ghost` in `docker-compose.yml`:
+```yaml
+ghost:
+  environment:
+    # your blog URL
+    - url=https://blog.example.com
+    # host config for nginx
+    - VIRTUAL_HOST=blog.example.com
+    # host config for Let's Encrypt SSL
+    - LETSENCRYPT_HOST=blog.example.com
+    # in case of cert renewal fails, let's encrypt will email you
+    - LETSENCRYPT_EMAIL=admin@example.com
+```
+
+4. Set up the docker image
 ```bash
 # -d to run containers in detached mode
 $ docker-compose up -d
 ```
 
-4. Navigate to [http://localhost:3001](http://localhost:3001) and if you see the ghost blog, you're good to go!
+5. Navigate to the host URL you defined in the `docker-compose.yml` file and if you see the ghost blog, you're good to go!
